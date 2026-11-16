@@ -39,7 +39,7 @@ class NavGestureService : AccessibilityService(),
 
     override fun onSharedPreferenceChanged(sharedPreferences: android.content.SharedPreferences?, key: String?) {
         if (key == StylePrefs.STYLE || key == StylePrefs.BACKGROUND ||
-            key == StylePrefs.INDICATOR || key == StylePrefs.WIDTH || key == StylePrefs.PNG_URI) {
+            key == StylePrefs.INDICATOR || key == StylePrefs.WIDTH || key == StylePrefs.HEIGHT || key == StylePrefs.RADIUS || key == StylePrefs.OPACITY || key == StylePrefs.GLOW || key == StylePrefs.HAPTICS || key == StylePrefs.REDUCED_MOTION || key == StylePrefs.ANIMATION || key == StylePrefs.SENSITIVITY || key == StylePrefs.HOLD_DURATION || key == StylePrefs.PNG_URI) {
             pill?.reloadAppearance()
         }
     }
@@ -61,7 +61,7 @@ class NavGestureService : AccessibilityService(),
         val view = GesturePill()
         pill = view
         val params = WindowManager.LayoutParams(
-            dp(view.targetWidth()), dp(42),
+            dp(view.targetWidth()), dp(view.targetHeight()),
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
@@ -99,7 +99,7 @@ class NavGestureService : AccessibilityService(),
         private var currentStyle = StylePrefs.MATERIAL
         private var backgroundColor = 0xFF252B35.toInt()
         private var indicatorColor = 0xFFF1F3FA.toInt()
-        private var customWidth = 144
+        private var customWidth = 144\n        private var customHeight = 42\n        private var cornerRadius = 32\n        private var opacity = 94\n        private var sensitivity = 30\n        private var holdDuration = 420L\n        private var glowEnabled = true\n        private var hapticsEnabled = true\n        private var reducedMotion = false\n        private var animationStyle = "spring"
 
         init {
             reloadAppearance()
@@ -108,13 +108,13 @@ class NavGestureService : AccessibilityService(),
             contentDescription = "Navigation pill. Swipe up for Home. Swipe up and hold for Recents."
         }
 
-        fun targetWidth(): Int = if (currentStyle == StylePrefs.CUSTOM) dp(customWidth) else dp(144)
+        fun targetWidth(): Int = dp(customWidth)\n        fun targetHeight(): Int = dp(customHeight)
 
         fun reloadAppearance() {
             currentStyle = prefs.getString(StylePrefs.STYLE, StylePrefs.MATERIAL) ?: StylePrefs.MATERIAL
             backgroundColor = prefs.getInt(StylePrefs.BACKGROUND, 0xFF252B35.toInt())
             indicatorColor = prefs.getInt(StylePrefs.INDICATOR, 0xFFF1F3FA.toInt())
-            customWidth = prefs.getInt(StylePrefs.WIDTH, 144).coerceIn(100, 220)
+            customWidth = prefs.getInt(StylePrefs.WIDTH, 144).coerceIn(100, 240)\n            customHeight = prefs.getInt(StylePrefs.HEIGHT, 42).coerceIn(24, 64)\n            cornerRadius = prefs.getInt(StylePrefs.RADIUS, 32).coerceIn(8, 32)\n            opacity = prefs.getInt(StylePrefs.OPACITY, 94).coerceIn(35, 100)\n            sensitivity = prefs.getInt(StylePrefs.SENSITIVITY, 30).coerceIn(15, 80)\n            holdDuration = prefs.getInt(StylePrefs.HOLD_DURATION, 420).coerceIn(250, 900).toLong()\n            glowEnabled = prefs.getBoolean(StylePrefs.GLOW, true)\n            hapticsEnabled = prefs.getBoolean(StylePrefs.HAPTICS, true)\n            reducedMotion = prefs.getBoolean(StylePrefs.REDUCED_MOTION, false)\n            animationStyle = prefs.getString(StylePrefs.ANIMATION, "spring") ?: "spring"
             customDrawable = null
             if (currentStyle == StylePrefs.CUSTOM) {
                 prefs.getString(StylePrefs.PNG_URI, null)?.let { raw ->
@@ -129,12 +129,12 @@ class NavGestureService : AccessibilityService(),
             background = when (currentStyle) {
                 StylePrefs.IOS -> GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
-                    cornerRadius = dp(32).toFloat()
+                    cornerRadius = dp(cornerRadius).toFloat()
                     setColor(0xFF17191D.toInt())
                 }
-                StylePrefs.CUSTOM -> GradientDrawable().apply {
+                StylePrefs.GLASS -> GradientDrawable(\n                    GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(0xBFFFFFFF.toInt(), 0x7FCCD7E8)\n                ).apply {\n                    shape = GradientDrawable.RECTANGLE\n                    cornerRadius = dp(cornerRadius).toFloat()\n                    setStroke(dp(1), 0x88FFFFFF.toInt())\n                }\n                StylePrefs.CUSTOM -> GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
-                    cornerRadius = dp(32).toFloat()
+                    cornerRadius = dp(cornerRadius).toFloat()
                     setColor(backgroundColor)
                     setStroke(dp(1), 0x38FFFFFF)
                 }
@@ -161,9 +161,9 @@ class NavGestureService : AccessibilityService(),
             super.onDraw(canvas)
             val w = width.toFloat()
             val h = height.toFloat()
-            if (currentStyle == StylePrefs.MATERIAL) {
+            if (currentStyle == StylePrefs.MATERIAL || currentStyle == StylePrefs.GLASS) {
                 paint.style = Paint.Style.FILL
-                paint.color = 0x20FFFFFF
+                paint.color = if (currentStyle == StylePrefs.GLASS) 0x55FFFFFF else 0x20FFFFFF
                 canvas.drawRoundRect(w * 0.18f, h * 0.13f, w * 0.82f, h * 0.34f, h, h, paint)
             }
 
@@ -180,7 +180,7 @@ class NavGestureService : AccessibilityService(),
                 paint.color = if (currentStyle == StylePrefs.IOS) 0xFFFFFFFF.toInt() else indicatorColor
                 paint.alpha = 255
                 canvas.drawRoundRect(indicator, indicatorHeight, indicatorHeight, paint)
-                if (currentStyle == StylePrefs.MATERIAL && dragProgress > 0.02f) {
+                if (glowEnabled && dragProgress > 0.02f && !reducedMotion) {
                     paint.color = 0xFFB8C9FF.toInt()
                     paint.alpha = (dragProgress * 95).toInt().coerceIn(0, 95)
                     canvas.drawRoundRect(centerX - indicatorWidth * 0.72f, centerY - dp(7),
@@ -219,11 +219,11 @@ class NavGestureService : AccessibilityService(),
                     val upward = downY - event.rawY
                     val heldFor = System.currentTimeMillis() - downAt
                     animatePress(false)
-                    if (upward > dp(30)) {
+                    if (upward > dp(sensitivity.toFloat())) {
                         dragProgress = 0f
                         invalidate()
                         burst()
-                        performGlobalAction(if (heldFor >= 420L) GLOBAL_ACTION_RECENTS else GLOBAL_ACTION_HOME)
+                        if (hapticsEnabled) performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM)\n                        performGlobalAction(if (heldFor >= holdDuration) GLOBAL_ACTION_RECENTS else GLOBAL_ACTION_HOME)
                     } else {
                         dragProgress = 0f
                         invalidate()
