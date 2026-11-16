@@ -99,7 +99,16 @@ class NavGestureService : AccessibilityService(),
         private var currentStyle = StylePrefs.MATERIAL
         private var backgroundColor = 0xFF252B35.toInt()
         private var indicatorColor = 0xFFF1F3FA.toInt()
-        private var customWidth = 144\n        private var customHeight = 42\n        private var cornerRadius = 32\n        private var opacity = 94\n        private var sensitivity = 30\n        private var holdDuration = 420L\n        private var glowEnabled = true\n        private var hapticsEnabled = true\n        private var reducedMotion = false\n        private var animationStyle = "spring"
+        private var customWidth = 144
+        private var customHeight = 42
+        private var cornerRadius = 32
+        private var opacity = 94
+        private var sensitivity = 30
+        private var holdDuration = 420L
+        private var glowEnabled = true
+        private var hapticsEnabled = true
+        private var reducedMotion = false
+        private var animationStyle = "spring"
 
         init {
             reloadAppearance()
@@ -108,13 +117,23 @@ class NavGestureService : AccessibilityService(),
             contentDescription = "Navigation pill. Swipe up for Home. Swipe up and hold for Recents."
         }
 
-        fun targetWidth(): Int = dp(customWidth)\n        fun targetHeight(): Int = dp(customHeight)
+        fun targetWidth(): Int = dp(customWidth)
+        fun targetHeight(): Int = dp(customHeight)
 
         fun reloadAppearance() {
             currentStyle = prefs.getString(StylePrefs.STYLE, StylePrefs.MATERIAL) ?: StylePrefs.MATERIAL
             backgroundColor = prefs.getInt(StylePrefs.BACKGROUND, 0xFF252B35.toInt())
             indicatorColor = prefs.getInt(StylePrefs.INDICATOR, 0xFFF1F3FA.toInt())
-            customWidth = prefs.getInt(StylePrefs.WIDTH, 144).coerceIn(100, 240)\n            customHeight = prefs.getInt(StylePrefs.HEIGHT, 42).coerceIn(24, 64)\n            cornerRadius = prefs.getInt(StylePrefs.RADIUS, 32).coerceIn(8, 32)\n            opacity = prefs.getInt(StylePrefs.OPACITY, 94).coerceIn(35, 100)\n            sensitivity = prefs.getInt(StylePrefs.SENSITIVITY, 30).coerceIn(15, 80)\n            holdDuration = prefs.getInt(StylePrefs.HOLD_DURATION, 420).coerceIn(250, 900).toLong()\n            glowEnabled = prefs.getBoolean(StylePrefs.GLOW, true)\n            hapticsEnabled = prefs.getBoolean(StylePrefs.HAPTICS, true)\n            reducedMotion = prefs.getBoolean(StylePrefs.REDUCED_MOTION, false)\n            animationStyle = prefs.getString(StylePrefs.ANIMATION, "spring") ?: "spring"
+            customWidth = prefs.getInt(StylePrefs.WIDTH, 144).coerceIn(100, 240)
+            customHeight = prefs.getInt(StylePrefs.HEIGHT, 42).coerceIn(24, 64)
+            cornerRadius = prefs.getInt(StylePrefs.RADIUS, 32).coerceIn(8, 32)
+            opacity = prefs.getInt(StylePrefs.OPACITY, 94).coerceIn(35, 100)
+            sensitivity = prefs.getInt(StylePrefs.SENSITIVITY, 30).coerceIn(15, 80)
+            holdDuration = prefs.getInt(StylePrefs.HOLD_DURATION, 420).coerceIn(250, 900).toLong()
+            glowEnabled = prefs.getBoolean(StylePrefs.GLOW, true)
+            hapticsEnabled = prefs.getBoolean(StylePrefs.HAPTICS, true)
+            reducedMotion = prefs.getBoolean(StylePrefs.REDUCED_MOTION, false)
+            animationStyle = prefs.getString(StylePrefs.ANIMATION, "spring") ?: "spring"
             customDrawable = null
             if (currentStyle == StylePrefs.CUSTOM) {
                 prefs.getString(StylePrefs.PNG_URI, null)?.let { raw ->
@@ -132,7 +151,14 @@ class NavGestureService : AccessibilityService(),
                     cornerRadius = dp(cornerRadius).toFloat()
                     setColor(0xFF17191D.toInt())
                 }
-                StylePrefs.GLASS -> GradientDrawable(\n                    GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(0xBFFFFFFF.toInt(), 0x7FCCD7E8)\n                ).apply {\n                    shape = GradientDrawable.RECTANGLE\n                    cornerRadius = dp(cornerRadius).toFloat()\n                    setStroke(dp(1), 0x88FFFFFF.toInt())\n                }\n                StylePrefs.CUSTOM -> GradientDrawable().apply {
+                StylePrefs.GLASS -> GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(0xBFFFFFFF.toInt(), 0x7FCCD7E8)
+                ).apply {
+                    shape = GradientDrawable.RECTANGLE
+                    cornerRadius = dp(cornerRadius).toFloat()
+                    setStroke(dp(1), 0x88FFFFFF.toInt())
+                }
+                StylePrefs.CUSTOM -> GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
                     cornerRadius = dp(cornerRadius).toFloat()
                     setColor(backgroundColor)
@@ -223,7 +249,8 @@ class NavGestureService : AccessibilityService(),
                         dragProgress = 0f
                         invalidate()
                         burst()
-                        if (hapticsEnabled) performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM)\n                        performGlobalAction(if (heldFor >= holdDuration) GLOBAL_ACTION_RECENTS else GLOBAL_ACTION_HOME)
+                        if (hapticsEnabled) performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM)
+                        performGlobalAction(if (heldFor >= holdDuration) GLOBAL_ACTION_RECENTS else GLOBAL_ACTION_HOME)
                     } else {
                         dragProgress = 0f
                         invalidate()
