@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Material Down</string>
+    <string name="accessibility_description">Shows a Material 3 gesture navigation pill over other apps.</string>
+</resources>
